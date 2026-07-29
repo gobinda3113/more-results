@@ -1,21 +1,95 @@
 # More Results - Increase Search Results
 
-A Chrome extension that lets you choose how many Google search results to show per page (up to 100).
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-blue?logo=googlechrome)](https://chromewebstore.google.com/)
+[![Firefox Add-on](https://img.shields.io/badge/Firefox-Addon-orange?logo=firefox)](https://addons.mozilla.org/)
 
-Choose from 10, 20, 30, 40, 50, 60, 80, or 100 results per page via the popup. Toggle on/off anytime.
+Choose how many Google search results to show per page — 10, 20, 30, 40, 50, 60, 80, or 100.
+
+No data collection. All settings stored locally. Works on all Google domains.
+
+---
+
+## Features
+
+- **Toggle on/off** from the popup with one click
+- **8 result options** — 10, 20, 30, 40, 50, 60, 80, or 100
+- **Persistent** — remembers your preference across sessions (syncs via chrome.storage)
+- **Lightweight** — no background processes, no tracking, no third-party code
+- **Works everywhere** — google.com, google.co.uk, google.de, google.co.jp, etc.
 
 ## How It Works
 
-Google removed the `&num=100` URL parameter in September 2025. This extension silently fetches Google's paginated result pages (`start=10, 20, 30...`) and merges the organic results into your current page.
+Google disabled the `&num=100` URL parameter in September 2025. Instead, this extension fetches paginated result pages (`start=10, 20, 30...`) and merges organic results into the current page. All requests are `same-origin` — nothing is sent to third-party servers.
 
-## Files
+## Installation
 
-- `manifest.json` – Extension manifest (MV3)
-- `background.js` – Service worker (sets defaults on install)
-- `content.js` – Injected into Google search pages (fetches & merges results)
-- `popup.html` / `popup.js` – Popup UI (toggle + result count selector)
-- `icons/` – 16/32/48/128 PNG icons
-- `privacy.html` – Privacy policy page
+### Chrome / Edge / Opera
+
+1. Download from the [Chrome Web Store]() or load unpacked from source
+2. Click the extension icon in the toolbar
+3. Toggle on and select your preferred result count
+4. Search on Google
+
+### Firefox
+
+1. Download from [Firefox Add-ons]() or load temporarily from `about:debugging`
+2. Same usage as Chrome
+
+## Permissions
+
+| Permission | Why |
+|------------|-----|
+| `storage` | Saves your results-per-page setting across sessions |
+| `host_permissions` (`google.com/search*`) | Fetches additional result pages to merge into the current page |
+
+No personal data is collected, stored, or transmitted.
+
+## Building from Source
+
+No build step required. The extension is plain JavaScript (no bundler, no dependencies).
+
+```
+more-results/
+├── manifest.json       # MV3 manifest
+├── background.js       # Service worker (sets defaults on install)
+├── content.js          # Injected into Google search pages
+├── popup.html          # Popup UI
+├── popup.js            # Popup logic
+├── privacy.html        # Privacy policy
+├── icons/
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
+```
+
+To load unpacked: open `chrome://extensions`, enable Developer mode, click "Load unpacked", select the folder.
+
+## Browser Support
+
+| Browser | Status |
+|---------|--------|
+| Chrome (MV3) | ✅ Supported |
+| Edge (MV3) | ✅ Supported (same code) |
+| Opera (MV3) | ✅ Supported (same code) |
+| Firefox (MV3) | ✅ Supported |
+| Safari | ❌ Not tested |
+
+## Privacy
+
+- No analytics
+- No trackers
+- No third-party requests
+- No data collection
+- All settings stored locally in `chrome.storage.sync`
+
+Full privacy policy at [privacy.html](privacy.html).
+
+## Known Limitations
+
+- Google may rate-limit background fetches. If results stop loading, toggle the extension off and on, or wait a few minutes.
+- Google changes their search page DOM periodically. The extension uses structural selectors (`a:has(h3)`) to stay resilient.
 
 ## License
 
