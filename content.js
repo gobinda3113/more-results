@@ -51,10 +51,25 @@
   const needed = Math.min(target, 100);
   if (seen.size >= needed) return;
 
-  for (let start = 10; start < needed && start < 100; start += 10) {
-    await new Promise(r => setTimeout(r, 800));
+  let nextStart = 10;
+  let failedCount = 0;
+  let loading = false;
+
+  const status = document.createElement("div");
+  status.textContent = "Loading more results...";
+  status.style.cssText = "text-align:center;padding:16px;color:#5f6368;font:13px/1.4 sans-serif";
+  status.style.display = "none";
+  list.after(status);
+
+  async function fetchNext() {
+    if (loading || nextStart >= 100 || seen.size >= needed || failedCount > 1) return;
+    loading = true;
+    status.style.display = "block";
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 400));
     try {
-      const html = await (await fetch(`/search?q=${encodeURIComponent(q)}&start=${start}`, { credentials: "same-origin" })).text();
+      const res = await fetch(`/search?q=${encodeURIComponent(q)}&start=${nextStart}`, { credentials: "same-origin" });
+      if (!res.ok) { loading = false; return; }
+      const html = await res.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
       const { items: fetched } = getResults(doc);
       let added = 0;
@@ -65,15 +80,25 @@
         list.appendChild(f.el.cloneNode(true));
         if (seen.size >= needed) break;
       }
-      if (added === 0) break;
+      if (added === 0) { failedCount++; loading = false; status.style.display = "none"; return; }
+      failedCount = 0;
+      nextStart += 10;
     } catch {
-      break;
+      failedCount++;
     }
+    loading = false;
+    if (seen.size >= needed) status.style.display = "none";
   }
 
-  if (seen.size >= needed) {
-    document.querySelector("#pnnext, #foot nav, .navend, nav[role='navigation']")?.remove();
-    document.querySelector("#botstuff")?.remove();
-  }
-  window.scrollTo(0, 0);
+  let scrollTimer;
+  window.addEventListener("scroll", () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2500) {
+        fetchNext();
+      }
+    }, 300);
+  }, { passive: true });
+
+  fetchNext();
 })();
